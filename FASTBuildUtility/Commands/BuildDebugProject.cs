@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
@@ -65,6 +67,9 @@ namespace FASTBuildUtility
             }
         }
 
+        private DTE2 dte;
+        private IVsSolution vsSolution;
+
         /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
@@ -77,6 +82,12 @@ namespace FASTBuildUtility
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new BuildDebugProject(package, commandService);
+
+            Instance.dte = Package.GetGlobalService(typeof(_DTE)) as DTE2;
+            Instance.dte.Events.BuildEvents.OnBuildDone += Instance.BuildEvents_OnBuildDone;
+            Instance.dte.Events.BuildEvents.OnBuildProjConfigDone += Instance.BuildEvents_OnBuildProjConfigDone;
+
+            Instance.vsSolution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
         }
 
         /// <summary>
@@ -89,17 +100,110 @@ namespace FASTBuildUtility
         private void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            string title = "BuildDebugProject";
 
-            // Show a message box to prove we were here
-            VsShellUtilities.ShowMessageBox(
-                this.package,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            // TODO: Disable execution and gray out the button while build is running (use OnBuildBegin/OnBuildDone event)?
+
+            try
+            {
+                if (!HandleFastBuildProject())
+                {
+                    dte.Solution.SolutionBuild.Debug();
+                }
+            }
+            catch (Exception)
+            {
+                RunDebugAfterCustomBuildsDone = false;
+            }
+        }
+
+        bool RunDebugAfterCustomBuildsDone = false;
+
+        private Project FindProject(Solution solution, string searchName)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            foreach (Project project in solution)
+            {
+                var found = FindProject(project, searchName);
+                if (found != null)
+                    return found;
+            }
+
+            return null;
+        }
+
+        private Project FindProject(Project project, string name)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (project == null)
+                return null;
+
+            if (project.FileName.Contains(name))
+                return project;
+
+            if (project.ProjectItems != null)
+            {
+                foreach (ProjectItem item in project.ProjectItems)
+                {
+                    if (item.SubProject != null)
+                    {
+                        var found = FindProject(item.SubProject, name);
+                        if (found != null)
+                            return found;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private bool HandleFastBuildProject()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            var startupProjects = (Array)dte.Solution.SolutionBuild.StartupProjects;
+            if (startupProjects.Length == 0)
+                return false;
+
+            RunDebugAfterCustomBuildsDone = true;
+
+            var activeConfiguration = dte.Solution.SolutionBuild.ActiveConfiguration;
+            foreach (var startupProject in startupProjects)
+            {
+                var project = FindProject(dte.Solution, startupProject.ToString());
+                var configuration = project.ConfigurationManager.ActiveConfiguration;
+
+                // TODO: Check whether this is FastBuild/NMake project, otherwise fallback to regular path.
+
+                dte.Solution.SolutionBuild.BuildProject(activeConfiguration.Name, startupProject.ToString(), false);
+            }
+
+            return true;
+        }
+
+        private void BuildEvents_OnBuildProjConfigDone(string project, string projectConfig, string platform, string solutionConfig, bool success)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (!RunDebugAfterCustomBuildsDone)
+                return;
+
+            if (!success)
+            {
+                RunDebugAfterCustomBuildsDone = false;
+            }
+        }
+
+        private void BuildEvents_OnBuildDone(EnvDTE.vsBuildScope scope, EnvDTE.vsBuildAction action)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (!RunDebugAfterCustomBuildsDone)
+                return;
+
+            RunDebugAfterCustomBuildsDone = false;
+            dte.Solution.SolutionBuild.Debug();
         }
     }
 }
