@@ -146,7 +146,7 @@ namespace FASTBuildUtility
             if (project == null)
                 return null;
 
-            if (project.FileName.Contains(name))
+            if (project.UniqueName == name)
                 return project;
 
             if (project.ProjectItems != null)
