@@ -2,6 +2,7 @@
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.VCProjectEngine;
 using System;
 using System.ComponentModel.Design;
 using System.Globalization;
@@ -166,16 +167,30 @@ namespace FASTBuildUtility
             if (startupProjects.Length == 0)
                 return false;
 
-            RunDebugAfterCustomBuildsDone = true;
-
             var activeConfiguration = dte.Solution.SolutionBuild.ActiveConfiguration;
             foreach (var startupProject in startupProjects)
             {
                 var project = FindProject(dte.Solution, startupProject.ToString());
-                var configuration = project.ConfigurationManager.ActiveConfiguration;
+                var vcProject = project?.Object as VCProject;
+                if (vcProject == null)
+                    return false;
 
-                // TODO: Check whether this is FastBuild/NMake project, otherwise fallback to regular path.
+                bool isFastBuild = false;
+                var vcConfiguration = vcProject.ActiveConfiguration;
+                foreach (var vcTool in (IVCCollection)vcConfiguration.Tools)
+                {
+                    var vcMakeTool = vcTool as VCNMakeTool;
+                    if (vcMakeTool != null && vcMakeTool.BuildCommandLine.Contains("FBuild"))
+                    {
+                        isFastBuild = true;
+                        break;
+                    }
+                }
 
+                if (!isFastBuild)
+                    return false;
+
+                RunDebugAfterCustomBuildsDone = true;
                 dte.Solution.SolutionBuild.BuildProject(activeConfiguration.Name, startupProject.ToString(), false);
             }
 
