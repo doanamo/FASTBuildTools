@@ -85,6 +85,7 @@ namespace FASTBuildUtility
             Instance = new BuildDebugProject(package, commandService);
 
             Instance.dte = Package.GetGlobalService(typeof(_DTE)) as DTE2;
+            Instance.dte.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
             Instance.dte.Events.BuildEvents.OnBuildDone += Instance.BuildEvents_OnBuildDone;
             Instance.dte.Events.BuildEvents.OnBuildProjConfigDone += Instance.BuildEvents_OnBuildProjConfigDone;
 
@@ -104,6 +105,9 @@ namespace FASTBuildUtility
 
             // TODO: Disable execution and gray out the button while build is running (use OnBuildBegin/OnBuildDone event)?
 
+            if (BuildRunning)
+                return;
+
             try
             {
                 if (!HandleFastBuildProject())
@@ -113,11 +117,13 @@ namespace FASTBuildUtility
             }
             catch (Exception)
             {
-                RunDebugAfterCustomBuildsDone = false;
+                DebugAfterBuildDone = false;
             }
         }
 
-        bool RunDebugAfterCustomBuildsDone = false;
+        private bool BuildRunning = false;
+        private bool ProjectBuilt = false;
+        private bool DebugAfterBuildDone = false;
 
         private Project FindProject(Solution solution, string searchName)
         {
@@ -190,23 +196,33 @@ namespace FASTBuildUtility
                 if (!isFastBuild)
                     return false;
 
-                RunDebugAfterCustomBuildsDone = true;
+                DebugAfterBuildDone = true;
                 dte.Solution.SolutionBuild.BuildProject(activeConfiguration.Name, startupProject.ToString(), false);
             }
 
             return true;
         }
 
+        private void BuildEvents_OnBuildBegin(EnvDTE.vsBuildScope scope, EnvDTE.vsBuildAction action)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            BuildRunning = true;
+            ProjectBuilt = false;
+        }
+
         private void BuildEvents_OnBuildProjConfigDone(string project, string projectConfig, string platform, string solutionConfig, bool success)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (!RunDebugAfterCustomBuildsDone)
-                return;
-
-            if (!success)
+            if (DebugAfterBuildDone && !success)
             {
-                RunDebugAfterCustomBuildsDone = false;
+                DebugAfterBuildDone = false;
+            }
+
+            if (success)
+            {
+                ProjectBuilt = true;
             }
         }
 
@@ -214,11 +230,13 @@ namespace FASTBuildUtility
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (!RunDebugAfterCustomBuildsDone)
-                return;
+            if (DebugAfterBuildDone && ProjectBuilt)
+            {
+                dte.Solution.SolutionBuild.Debug();
+            }
 
-            RunDebugAfterCustomBuildsDone = false;
-            dte.Solution.SolutionBuild.Debug();
+            DebugAfterBuildDone = false;
+            BuildRunning = false;
         }
     }
 }
