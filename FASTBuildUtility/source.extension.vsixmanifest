@@ -3,7 +3,7 @@
     <Metadata>
         <Identity Id="FASTBuildUtility.f822fbbe-b4c3-4058-9814-b474d4de87f7" Version="0.1.3" Language="en-US" Publisher="CD PROJEKT S.A." />
         <DisplayName>FASTBuildUtility</DisplayName>
-        <Description xml:space="preserve">Utilities for projects built using FASTBuild.Utility extension </Description>
+        <Description xml:space="preserve">Utilities for projects built using FASTBuild</Description>
     </Metadata>
     <Installation>
         <InstallationTarget Version="[16.0,17.0)" Id="Microsoft.VisualStudio.Community" />
