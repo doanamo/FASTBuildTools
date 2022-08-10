@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
-namespace FASTBuildUtility
+namespace FASTBuildTools
 {
     /// <summary>
     /// Command handler

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
-namespace FASTBuildUtility
+namespace FASTBuildTools
 {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
@@ -24,9 +24,9 @@ namespace FASTBuildUtility
     /// </para>
     /// </remarks>
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [Guid(FASTBuildUtilityPackage.PackageGuidString)]
+    [Guid(FASTBuildToolsPackage.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    public sealed class FASTBuildUtilityPackage : AsyncPackage
+    public sealed class FASTBuildToolsPackage : AsyncPackage
     {
         /// <summary>
         /// FASTBuildUtilityPackage GUID string.

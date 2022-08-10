@@ -13,8 +13,8 @@
     <ProjectGuid>{0BB19755-7BEE-4C7E-B5F9-0C026C8BB5DD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FASTBuildUtility</RootNamespace>
-    <AssemblyName>FASTBuildUtility</AssemblyName>
+    <RootNamespace>FASTBuildTools</RootNamespace>
+    <AssemblyName>FASTBuildTools</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
@@ -48,13 +48,13 @@
   <ItemGroup>
     <Compile Include="Commands\BuildDebugProject.cs" />
     <Compile Include="Commands\CompileSingleFile.cs" />
-    <Compile Include="FASTBuildUtilityPackage1.cs">
+    <Compile Include="FASTBuildToolsPackage1.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>FASTBuildUtilityPackage.vsct</DependentUpon>
+      <DependentUpon>FASTBuildToolsPackage.vsct</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="FASTBuildUtilityPackage.cs" />
+    <Compile Include="FASTBuildToolsPackage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="source.extension.vsixmanifest">
@@ -80,10 +80,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="FASTBuildUtilityPackage.vsct">
+    <VSCTCompile Include="FASTBuildToolsPackage.vsct">
       <Generator>VsctGenerator</Generator>
       <ResourceName>Menus.ctmenu</ResourceName>
-      <LastGenOutput>FASTBuildUtilityPackage1.cs</LastGenOutput>
+      <LastGenOutput>FASTBuildToolsPackage1.cs</LastGenOutput>
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
