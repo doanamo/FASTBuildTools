@@ -181,9 +181,13 @@ namespace FASTBuildUtility
                 if (vcProject == null)
                     return false;
 
-                bool isFastBuild = false;
                 var vcConfiguration = vcProject.ActiveConfiguration;
-                foreach (var vcTool in (IVCCollection)vcConfiguration.Tools)
+                var vcTools = (IVCCollection)vcConfiguration?.Tools;
+                if (vcTools == null)
+                    return false;
+
+                bool isFastBuild = false;
+                foreach (var vcTool in vcTools)
                 {
                     var vcMakeTool = vcTool as VCNMakeTool;
                     if (vcMakeTool != null && vcMakeTool.BuildCommandLine.Contains("FBuild"))
