@@ -59,7 +59,7 @@
           <CommandName>FASTBuild.CompileSingleFile</CommandName>
           <CanonicalName>FASTBuild.CompileSingleFile</CanonicalName>
           <LocCanonicalName>FASTBuild.CompileSingleFile</LocCanonicalName>
-          <ButtonText>FASTBuild: Compile Single File</ButtonText>
+          <ButtonText>FASTBuildTools: Compile Single File</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidFASTBuildUtilityPackageCmdSet" id="BuildDebugProjectId" priority="0x0100" type="Button">
@@ -69,7 +69,7 @@
           <CommandName>FASTBuild.BuildDebugProject</CommandName>
           <CanonicalName>FASTBuild.BuildDebugProject</CanonicalName>
           <LocCanonicalName>FASTBuild.BuildDebugProject</LocCanonicalName>
-          <ButtonText>FASTBuild: Build and Debug Project</ButtonText>
+          <ButtonText>FASTBuildTools: Build and Debug Project</ButtonText>
         </Strings>
       </Button>
     </Buttons>
