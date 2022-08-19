@@ -9,13 +9,13 @@ using Task = System.Threading.Tasks.Task;
 
 namespace FASTBuildTools
 {
-    internal sealed class BuildDebugProject
+    internal sealed class DebugStartupProject
     {
         public const int CommandId = 4129;
         public static readonly Guid CommandSet = new Guid("d3d22de7-8b47-49ed-b994-0c1debd5949d");
         private readonly AsyncPackage package;
 
-        private BuildDebugProject(AsyncPackage package, OleMenuCommandService commandService)
+        private DebugStartupProject(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -25,7 +25,7 @@ namespace FASTBuildTools
             commandService.AddCommand(menuItem);
         }
 
-        public static BuildDebugProject Instance
+        public static DebugStartupProject Instance
         {
             get;
             private set;
@@ -48,7 +48,7 @@ namespace FASTBuildTools
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new BuildDebugProject(package, commandService);
+            Instance = new DebugStartupProject(package, commandService);
 
             Instance.DTE = Package.GetGlobalService(typeof(_DTE)) as DTE2;
             Instance.VsSolution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;

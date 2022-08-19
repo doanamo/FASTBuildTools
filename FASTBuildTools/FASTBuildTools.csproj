@@ -46,7 +46,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commands\BuildDebugProject.cs" />
+    <Compile Include="Commands\DebugStartupProject.cs" />
     <Compile Include="Commands\CompileSingleFile.cs" />
     <Compile Include="FASTBuildToolsPackage1.cs">
       <AutoGen>True</AutoGen>

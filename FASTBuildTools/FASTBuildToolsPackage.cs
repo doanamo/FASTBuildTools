@@ -48,7 +48,7 @@ namespace FASTBuildTools
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await CompileSingleFile.InitializeAsync(this);
-            await BuildDebugProject.InitializeAsync(this);
+            await DebugStartupProject.InitializeAsync(this);
         }
 
         #endregion

@@ -62,14 +62,14 @@
           <ButtonText>FASTBuildTools: Compile Single File</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidFASTBuildUtilityPackageCmdSet" id="BuildDebugProjectId" priority="0x0100" type="Button">
+      <Button guid="guidFASTBuildUtilityPackageCmdSet" id="DebugStartupProjectId" priority="0x0100" type="Button">
         <Parent guid="guidFASTBuildUtilityPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <CommandName>FASTBuild.BuildDebugProject</CommandName>
-          <CanonicalName>FASTBuild.BuildDebugProject</CanonicalName>
-          <LocCanonicalName>FASTBuild.BuildDebugProject</LocCanonicalName>
-          <ButtonText>FASTBuildTools: Build and Debug Project</ButtonText>
+          <CommandName>FASTBuild.DebugStartupProject</CommandName>
+          <CanonicalName>FASTBuild.DebugStartupProject</CanonicalName>
+          <LocCanonicalName>FASTBuild.DebugStartupProject</LocCanonicalName>
+          <ButtonText>FASTBuildTools: Debug Startup Project</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -93,7 +93,7 @@
     <GuidSymbol name="guidFASTBuildUtilityPackageCmdSet" value="{d3d22de7-8b47-49ed-b994-0c1debd5949d}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="CompileSingleFileId" value="0x0100" />
-      <IDSymbol value="4129" name="BuildDebugProjectId" />
+      <IDSymbol value="4129" name="DebugStartupProjectId" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{4cf6cfeb-6dce-4cc0-9ef7-abc892de3562}">
