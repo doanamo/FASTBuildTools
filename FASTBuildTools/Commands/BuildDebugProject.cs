@@ -108,16 +108,24 @@ namespace FASTBuildTools
             if (BuildRunning)
                 return;
 
+            bool executeFallback = false;
+
             try
             {
                 if (!HandleFastBuildProject())
                 {
-                    dte.Solution.SolutionBuild.Debug();
+                    executeFallback = true;
                 }
             }
             catch (Exception)
             {
                 DebugAfterBuildDone = false;
+                executeFallback = true;
+            }
+
+            if (executeFallback)
+            {
+                dte.Solution.SolutionBuild.Debug();
             }
         }
 
