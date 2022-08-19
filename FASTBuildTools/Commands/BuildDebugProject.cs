@@ -70,6 +70,7 @@ namespace FASTBuildTools
 
         private DTE2 dte;
         private IVsSolution vsSolution;
+        private BuildEvents buildEvents;
 
         /// <summary>
         /// Initializes the singleton instance of the command.
@@ -85,11 +86,12 @@ namespace FASTBuildTools
             Instance = new BuildDebugProject(package, commandService);
 
             Instance.dte = Package.GetGlobalService(typeof(_DTE)) as DTE2;
+            Instance.vsSolution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+
+            Instance.buildEvents = Instance.dte.Events.BuildEvents;
             Instance.dte.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
             Instance.dte.Events.BuildEvents.OnBuildDone += Instance.BuildEvents_OnBuildDone;
             Instance.dte.Events.BuildEvents.OnBuildProjConfigDone += Instance.BuildEvents_OnBuildProjConfigDone;
-
-            Instance.vsSolution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
         }
 
         /// <summary>
