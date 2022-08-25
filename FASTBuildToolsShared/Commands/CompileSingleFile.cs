@@ -99,6 +99,9 @@ namespace FASTBuildTools
             ThreadHelper.ThrowIfNotOnUIThread();
 
             // Get build output pane.
+            Window window = DTE.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Activate();
+
             VsOutputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out IVsOutputWindowPane buildOutputPane);
 
             // Run single file compile.

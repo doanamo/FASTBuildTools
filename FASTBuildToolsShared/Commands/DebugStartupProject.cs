@@ -75,6 +75,8 @@ namespace FASTBuildTools
                 return;
             }
 
+            Window window = DTE.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Activate();
 
             try
             {
