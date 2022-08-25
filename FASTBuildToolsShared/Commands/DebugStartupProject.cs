@@ -145,6 +145,10 @@ namespace FASTBuildTools
 
             if (DebugAfterBuildDone && ProjectBuilt)
             {
+                // TODO: This will attempt to (unsuccessfully) build NMake project,
+                // which will result in build output pane being cleared again. We
+                // should somehow preserve the log or prevent it from being cleaned.
+
                 DTE.Solution.SolutionBuild.Debug();
             }
 
