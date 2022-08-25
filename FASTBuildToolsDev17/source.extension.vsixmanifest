@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="FASTBuildTools.f822fbbe-b4c3-4058-9814-b474d4de87f7" Version="0.4.2" Language="en-US" Publisher="CD PROJEKT S.A." />
+        <Identity Id="FASTBuildTools.f822fbbe-b4c3-4058-9814-b474d4de87f7" Version="0.5.0" Language="en-US" Publisher="CD PROJEKT S.A." />
         <DisplayName>FASTBuildTools</DisplayName>
         <Description xml:space="preserve">Tools for projects built using FASTBuild.</Description>
     </Metadata>

@@ -42,6 +42,7 @@ namespace FASTBuildTools
         private DTE2 DTE;
         private IVsSolution VsSolution;
         private BuildEvents BuildEvents;
+        private CommandEvents CommandEvents;
 
         public static async Task InitializeAsync(AsyncPackage package)
         {
@@ -57,6 +58,40 @@ namespace FASTBuildTools
             Instance.DTE.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
             Instance.DTE.Events.BuildEvents.OnBuildDone += Instance.BuildEvents_OnBuildDone;
             Instance.DTE.Events.BuildEvents.OnBuildProjConfigDone += Instance.BuildEvents_OnBuildProjConfigDone;
+
+            Commands commands = Instance.DTE.Commands;
+            Command command = commands.Item("Debug.Start", -1);
+            Instance.CommandEvents = Instance.DTE.Events.get_CommandEvents(command.Guid, command.ID);
+            Instance.CommandEvents.BeforeExecute += new _dispCommandEvents_BeforeExecuteEventHandler(Instance.Command_BeforeExecute);
+        }
+
+        private void Command_BeforeExecute(string Guid, int ID, object CustomIn, object CustomOut, ref bool CancelDefault)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if (BuildRunning)
+            {
+                CancelDefault = true;
+                return;
+            }
+
+
+            try
+            {
+                if (!HandleFastBuildProject())
+                {
+                    CancelDefault = false;
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                DebugAfterBuildDone = false;
+                CancelDefault = false;
+            }
+
+            // We've already handled everything.
+            CancelDefault = true;
         }
 
         private void Execute(object sender, EventArgs e)
@@ -66,22 +101,10 @@ namespace FASTBuildTools
             if (BuildRunning)
                 return;
 
-            bool executeFallback = false;
+            bool CancelDefault = false;
+            Command_BeforeExecute("", 0, null, null, ref CancelDefault);
 
-            try
-            {
-                if (!HandleFastBuildProject())
-                {
-                    executeFallback = true;
-                }
-            }
-            catch (Exception)
-            {
-                DebugAfterBuildDone = false;
-                executeFallback = true;
-            }
-
-            if (executeFallback)
+            if (!CancelDefault)
             {
                 DTE.Solution.SolutionBuild.Debug();
             }

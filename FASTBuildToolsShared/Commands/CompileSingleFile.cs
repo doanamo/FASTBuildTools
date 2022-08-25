@@ -71,6 +71,7 @@ namespace FASTBuildTools
         private IVsSolution2 VsSolution;
         private IVsOutputWindow VsOutputWindow;
         private BuildEvents BuildEvents;
+        private CommandEvents CommandEvents;
 
         public static async Task InitializeAsync(AsyncPackage package)
         {
@@ -85,9 +86,15 @@ namespace FASTBuildTools
 
             Instance.BuildEvents = Instance.DTE.Events.BuildEvents;
             Instance.DTE.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
+
+            Commands commands = Instance.DTE.Commands;
+
+            Command command = commands.Item("Build.Compile", -1);
+            Instance.CommandEvents = Instance.DTE.Events.get_CommandEvents(command.Guid, command.ID);
+            Instance.CommandEvents.BeforeExecute += new _dispCommandEvents_BeforeExecuteEventHandler(Instance.Command_BeforeExecute);
         }
 
-        private void Execute(object sender, EventArgs e)
+        private void Command_BeforeExecute(string Guid, int ID, object CustomIn, object CustomOut, ref bool CancelDefault)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -95,23 +102,35 @@ namespace FASTBuildTools
             VsOutputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out IVsOutputWindowPane buildOutputPane);
 
             // Run single file compile.
-            bool executeFallback = false;
-
             try
             {
                 if (!HandleFastBuildProject(buildOutputPane))
                 {
-                    executeFallback = true;
+                    CancelDefault = false;
+                    return;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 buildOutputPane?.OutputStringThreadSafe($"Exception: {ex.Message}" + Environment.NewLine);
-                executeFallback = true;
+                CancelDefault = false;
+                return;
             }
 
-            if (executeFallback)
+            // We've already handled everything.
+            CancelDefault = true;
+        }
+
+        private void Execute(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            bool CancelDefault = false;
+            Command_BeforeExecute("", 0, null, null, ref CancelDefault);
+
+            if (!CancelDefault)
             {
+                VsOutputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out IVsOutputWindowPane buildOutputPane);
                 buildOutputPane?.OutputStringThreadSafe("Falling back to regular Build.Compile command..." + Environment.NewLine);
 
                 try
