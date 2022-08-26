@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="FASTBuildTools.f822fbbe-b4c3-4058-9814-b474d4de87f7" Version="0.5.2" Language="en-US" Publisher="CD PROJEKT S.A." />
+        <Identity Id="FASTBuildTools.f822fbbe-b4c3-4058-9814-b474d4de87f7" Version="0.5.3" Language="en-US" Publisher="CD PROJEKT S.A." />
         <DisplayName>FASTBuildTools</DisplayName>
         <Description xml:space="preserve">Tools for projects built using FASTBuild.</Description>
     </Metadata>
@@ -10,7 +10,13 @@
             <ProductArchitecture>amd64</ProductArchitecture>
         </InstallationTarget>
     </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.7.2,)" />
+    </Dependencies>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,18.0)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
     </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
 </PackageManifest>
