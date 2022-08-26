@@ -194,9 +194,37 @@ namespace FASTBuildTools
 
             if (DebugAfterBuildDone && ProjectBuilt)
             {
-                // TODO: This will attempt to (unsuccessfully) build NMake project,
-                // which will result in build output pane being cleared again. We
-                // should somehow preserve the log or prevent it from being cleaned.
+                // Copy build output to new pane before starting Debug command, which will
+                // try to unsuccessfully build NMake project and in result erase build output.
+                try
+                {
+                    const string buildOutputPaneGuid = "{1BD8A850-02D1-11D1-BEE7-00A0C913D1F8}";
+                    const string vsWindowKindOutput = "{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}";
+                    var outputWindow = DTE.Windows.Item(vsWindowKindOutput);
+                    var outputWindowDynamic = outputWindow.Object as OutputWindow;
+
+                    OutputWindowPane pane = outputWindowDynamic.OutputWindowPanes.Item(buildOutputPaneGuid);
+
+                    pane.Activate();
+                    var selection = pane.TextDocument.Selection;
+                    selection.SelectAll();
+
+                    OutputWindowPane targetPane;
+                    try
+                    {
+                        targetPane = outputWindowDynamic.OutputWindowPanes.Item("FASTBuildTools");
+                    }
+                    catch (Exception)
+                    {
+                        targetPane = outputWindowDynamic.OutputWindowPanes.Add("FASTBuildTools");
+                    }
+
+                    targetPane.Clear();
+                    targetPane.OutputString(selection.Text);
+                }
+                catch (Exception)
+                {
+                }
 
                 DTE.Solution.SolutionBuild.Debug();
             }
