@@ -3,6 +3,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.VCProjectEngine;
 using System;
 using System.ComponentModel.Design;
 using Task = System.Threading.Tasks.Task;
@@ -120,6 +121,7 @@ namespace FASTBuildTools
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            // Get project hierarchy.
             var solutionBuildManager = Package.GetGlobalService(typeof(SVsSolutionBuildManager)) as IVsSolutionBuildManager2;
             solutionBuildManager.get_StartupProject(out IVsHierarchy projectHierarchy);
             if (projectHierarchy == null)
@@ -130,6 +132,28 @@ namespace FASTBuildTools
             if (startupProject == null)
                 return false;
 
+            // Determine if FastBuild project.
+            var vcProject = startupProject.Object as VCProject;
+            var vcConfiguration = vcProject?.ActiveConfiguration;
+            var vcTools = vcConfiguration?.Tools as IVCCollection;
+            if (vcTools == null)
+                return false;
+
+            bool isFastBuild = false;
+            foreach (var vcTool in vcTools)
+            {
+                var vcMakeTool = vcTool as VCNMakeTool;
+                if (vcMakeTool != null && vcMakeTool.BuildCommandLine.Contains("FBuild"))
+                {
+                    isFastBuild = true;
+                    break;
+                }
+            }
+
+            if (!isFastBuild)
+                return false;
+
+            // Perform manual build.
             var activeConfiguration = DTE.Solution.SolutionBuild.ActiveConfiguration as SolutionConfiguration2;
 
             DebugAfterBuildDone = true;
