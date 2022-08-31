@@ -52,6 +52,7 @@ namespace FASTBuildTools
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await CompileSingleFile.InitializeAsync(this);
             await DebugStartupProject.InitializeAsync(this);
+            await BuildSelectProjects.InitializeAsync(this);
         }
 
         #endregion

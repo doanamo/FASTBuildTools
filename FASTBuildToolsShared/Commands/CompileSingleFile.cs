@@ -86,6 +86,7 @@ namespace FASTBuildTools
 
             Instance.BuildEvents = Instance.DTE.Events.BuildEvents;
             Instance.DTE.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
+            Instance.DTE.Events.BuildEvents.OnBuildDone += Instance.BuildEvents_OnBuildDone;
 
             Commands commands = Instance.DTE.Commands;
 
@@ -94,34 +95,71 @@ namespace FASTBuildTools
             Instance.CommandEvents.BeforeExecute += new _dispCommandEvents_BeforeExecuteEventHandler(Instance.Command_BeforeExecute);
         }
 
+        private bool BuildRunning = false;
+
         private void Command_BeforeExecute(string Guid, int ID, object CustomIn, object CustomOut, ref bool CancelDefault)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Get build output pane.
-            Window window = DTE.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
-            window.Activate();
+            if (BuildRunning)
+            {
+                CancelDefault = true;
+                return;
+            }
 
-            VsOutputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out IVsOutputWindowPane buildOutputPane);
+            // Handle already running build.
+            if (ChildProcess != null && !ChildProcess.HasExited)
+            {
+                if (MessageBox.Show("Cancel current build?", "Single file compilation for FASTBuild already in progress", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    KillChildProcess();
+                }
+                else
+                {
+                    CancelDefault = true;
+                    return;
+                }
+            }
+
+            // Get build output pane.
+            const string vsWindowKindOutput = "{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}";
+            var outputWindow = DTE.Windows.Item(vsWindowKindOutput);
+            var outputWindowDynamic = outputWindow.Object as OutputWindow;
+
+            OutputWindowPane buildOutputPane;
+            try
+            {
+                buildOutputPane = outputWindowDynamic.OutputWindowPanes.Item("FASTBuildTools: CompileSingleFile");
+            }
+            catch (Exception)
+            {
+                buildOutputPane = outputWindowDynamic.OutputWindowPanes.Add("FASTBuildTools: CompileSingleFile");
+            }
+
+            buildOutputPane.Clear();
+            buildOutputPane.Activate();
+            outputWindow.Activate();
 
             // Run single file compile.
+            CancelDefault = true;
+
             try
             {
                 if (!HandleFastBuildProject(buildOutputPane))
                 {
                     CancelDefault = false;
-                    return;
                 }
             }
             catch (Exception ex)
             {
-                buildOutputPane?.OutputStringThreadSafe($"Exception: {ex.Message}" + Environment.NewLine);
+                buildOutputPane.OutputString($"Exception: {ex.Message}" + Environment.NewLine);
                 CancelDefault = false;
-                return;
             }
 
-            // We've already handled everything.
-            CancelDefault = true;
+            if (!CancelDefault)
+            {
+                buildOutputPane.OutputString("Falling back to regular Build.Compile command..." + Environment.NewLine);
+            }
         }
 
         private void Execute(object sender, EventArgs e)
@@ -133,9 +171,6 @@ namespace FASTBuildTools
 
             if (!CancelDefault)
             {
-                VsOutputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out IVsOutputWindowPane buildOutputPane);
-                buildOutputPane?.OutputStringThreadSafe("Falling back to regular Build.Compile command..." + Environment.NewLine);
-
                 try
                 {
                     DTE.ExecuteCommand("Build.Compile");
@@ -146,7 +181,7 @@ namespace FASTBuildTools
             }
         }
 
-        private bool HandleFastBuildProject(IVsOutputWindowPane buildOutputPane)
+        private bool HandleFastBuildProject(OutputWindowPane buildOutputPane)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -162,19 +197,7 @@ namespace FASTBuildTools
             var activeConfiguration = DTE.Solution.SolutionBuild.ActiveConfiguration as SolutionConfiguration2;
             string activeConfigurationName = $"{activeConfiguration.Name}|{activeConfiguration.PlatformName}";
 
-            // Prepare build output pane.
-            buildOutputPane?.Clear();
-            buildOutputPane?.OutputStringThreadSafe($"Starting single file compilation for {activeDocument.Name} in {activeConfigurationName} configuration..." + Environment.NewLine);
-            buildOutputPane?.Activate();
-
-            // Handle already running build.
-            if (ChildProcess != null && !ChildProcess.HasExited)
-            {
-                if (MessageBox.Show("Cancel current build?", "Single file compilation already in progress", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                {
-                    KillChildProcess();
-                }
-            }
+            buildOutputPane.OutputString($"Starting single file compilation for {activeDocument.Name} in {activeConfigurationName} configuration..." + Environment.NewLine);
 
             // Get project associated with active document.
             var projectItem = activeDocument?.ProjectItem;
@@ -182,7 +205,7 @@ namespace FASTBuildTools
             var vcProject = project?.Object as VCProject;
             if (vcProject == null)
             {
-                buildOutputPane?.OutputStringThreadSafe("Error: Could not get project object from active document!" + Environment.NewLine);
+                buildOutputPane.OutputString("Error: Could not get project object from active document!" + Environment.NewLine);
                 return false;
             }
 
@@ -205,7 +228,7 @@ namespace FASTBuildTools
             var vcTools = vcConfiguration?.Tools as IVCCollection;
             if (vcTools == null)
             {
-                buildOutputPane?.OutputStringThreadSafe("Error: Could not get tools from current project configuration!" + Environment.NewLine);
+                buildOutputPane.OutputString("Error: Could not get tools from current project configuration!" + Environment.NewLine);
                 return false;
             }
 
@@ -224,7 +247,7 @@ namespace FASTBuildTools
 
             if (!isFastBuild)
             {
-                buildOutputPane?.OutputStringThreadSafe("Active document is not from FastBuild project." + Environment.NewLine);
+                buildOutputPane.OutputString("Active document is not from FastBuild project." + Environment.NewLine);
                 return false;
             }
 
@@ -246,7 +269,7 @@ namespace FASTBuildTools
 
             if (nodeBffMatch.Count != 1)
             {
-                buildOutputPane?.OutputStringThreadSafe("Error: Failed to parse project BFF! Could not find expected target node." + Environment.NewLine);
+                buildOutputPane.OutputString("Error: Failed to parse project BFF! Could not find expected target node." + Environment.NewLine);
                 return true;
             }
 
@@ -255,7 +278,7 @@ namespace FASTBuildTools
 
             if (nodeBffTextEnd == -1)
             {
-                buildOutputPane?.OutputStringThreadSafe("Error: Failed to parse project BFF! Could not extract target node." + Environment.NewLine);
+                buildOutputPane.OutputString("Error: Failed to parse project BFF! Could not extract target node." + Environment.NewLine);
                 return true;
             }
 
@@ -265,7 +288,7 @@ namespace FASTBuildTools
                 var character = projectBffText[++nodeBffTextEnd];
                 if (nodeBffTextEnd >= projectBffText.Length)
                 {
-                    buildOutputPane?.OutputStringThreadSafe("Error: Failed to parse project BFF! Could not extract target node." + Environment.NewLine);
+                    buildOutputPane.OutputString("Error: Failed to parse project BFF! Could not extract target node." + Environment.NewLine);
                     return true;
                 }
 
@@ -357,7 +380,7 @@ namespace FASTBuildTools
             {
                 if (Args.Data != null)
                 {
-                    buildOutputPane?.OutputStringThreadSafe($"{Args.Data}{Environment.NewLine}");
+                    buildOutputPane.OutputString($"{Args.Data}{Environment.NewLine}");
                 }
             }
 
@@ -381,7 +404,18 @@ namespace FASTBuildTools
 
         private void BuildEvents_OnBuildBegin(EnvDTE.vsBuildScope scope, EnvDTE.vsBuildAction action)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            BuildRunning = true;
+
             KillChildProcess();
+        }
+
+        private void BuildEvents_OnBuildDone(EnvDTE.vsBuildScope scope, EnvDTE.vsBuildAction action)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            BuildRunning = false;
         }
     }
 }

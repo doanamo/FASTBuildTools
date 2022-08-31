@@ -77,7 +77,7 @@
     <VSCTCompile Include="..\FASTBuildToolsShared\FASTBuildToolsPackage.vsct">
       <Generator>VsctGenerator</Generator>
       <ResourceName>Menus.ctmenu</ResourceName>
-      <LastGenOutput>..\FASTBuildToolsShared\FASTBuildToolsPackage.cs</LastGenOutput>
+      <LastGenOutput>..\FASTBuildToolsShared\FASTBuildToolsPackage1.cs</LastGenOutput>
     </VSCTCompile>
   </ItemGroup>
   <Import Project="..\FASTBuildToolsShared\FASTBuildToolsShared.projitems" Label="Shared" />

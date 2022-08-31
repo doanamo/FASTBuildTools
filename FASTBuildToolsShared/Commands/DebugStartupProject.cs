@@ -101,9 +101,6 @@ namespace FASTBuildTools
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (BuildRunning)
-                return;
-
             bool CancelDefault = false;
             Command_BeforeExecute("", 0, null, null, ref CancelDefault);
 
@@ -127,7 +124,7 @@ namespace FASTBuildTools
             if (projectHierarchy == null)
                 return false;
 
-            projectHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out object projectObject); ;
+            projectHierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out object projectObject);
             var startupProject = projectObject as Project;
             if (startupProject == null)
                 return false;
@@ -212,15 +209,16 @@ namespace FASTBuildTools
                     OutputWindowPane targetPane;
                     try
                     {
-                        targetPane = outputWindowDynamic.OutputWindowPanes.Item("FASTBuildTools");
+                        targetPane = outputWindowDynamic.OutputWindowPanes.Item("FASTBuildTools: DebugStartupProject");
                     }
                     catch (Exception)
                     {
-                        targetPane = outputWindowDynamic.OutputWindowPanes.Add("FASTBuildTools");
+                        targetPane = outputWindowDynamic.OutputWindowPanes.Add("FASTBuildTools: DebugStartupProject");
                     }
 
                     targetPane.Clear();
                     targetPane.OutputString(selection.Text);
+                    targetPane.Activate();
                 }
                 catch (Exception)
                 {
