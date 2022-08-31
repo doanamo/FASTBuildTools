@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\BuildSelectProjects.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\CompileSingleFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\DebugStartupProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CancelAllBuilds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FASTBuildToolsPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FASTBuildToolsPackage1.cs">
       <AutoGen>True</AutoGen>

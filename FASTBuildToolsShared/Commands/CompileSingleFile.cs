@@ -33,14 +33,16 @@ namespace FASTBuildTools
 
         System.Diagnostics.Process ChildProcess;
 
-        void KillChildProcess()
+        public void KillChildProcess()
         {
             if (ChildProcess != null)
             {
                 if (!ChildProcess.HasExited)
                 {
+                    ChildProcess.CancelOutputRead();
+                    ChildProcess.CancelErrorRead();
                     ChildProcess.Kill();
-                    ChildProcess.WaitForExit();
+                    ChildProcess.WaitForExit(3000);
                 }
 
                 ChildProcess.Dispose();

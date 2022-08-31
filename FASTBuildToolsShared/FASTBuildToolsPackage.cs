@@ -53,6 +53,7 @@ namespace FASTBuildTools
             await CompileSingleFile.InitializeAsync(this);
             await DebugStartupProject.InitializeAsync(this);
             await BuildSelectProjects.InitializeAsync(this);
+            await CancelAllBuilds.InitializeAsync(this);
         }
 
         #endregion

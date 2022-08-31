@@ -82,6 +82,16 @@
           <ButtonText>FASTBuildTools: Build Select Projects</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidFASTBuildUtilityPackageCmdSet" id="CancelAllBuildsId" priority="0x0100" type="Button">
+        <Parent guid="guidFASTBuildUtilityPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <CommandName>FASTBuild.CancelAllBuilds</CommandName>
+          <CanonicalName>FASTBuild.CancelAllBuilds</CanonicalName>
+          <LocCanonicalName>FASTBuild.CancelAllBuilds</LocCanonicalName>
+          <ButtonText>FASTBuildTools: Cancel All Builds</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -105,6 +115,7 @@
       <IDSymbol name="CompileSingleFileId" value="0x0100" />
       <IDSymbol value="4129" name="DebugStartupProjectId" />
       <IDSymbol name="BuildSelectProjectsId" value="4130" />
+      <IDSymbol name="CancelAllBuildsId" value="4131" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{4cf6cfeb-6dce-4cc0-9ef7-abc892de3562}">

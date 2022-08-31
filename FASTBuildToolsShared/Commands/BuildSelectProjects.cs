@@ -34,14 +34,16 @@ namespace FASTBuildTools
 
         System.Diagnostics.Process ChildProcess;
 
-        void KillChildProcess()
+        public void KillChildProcess()
         {
             if (ChildProcess != null)
             {
                 if (!ChildProcess.HasExited)
                 {
+                    ChildProcess.CancelOutputRead();
+                    ChildProcess.CancelErrorRead();
                     ChildProcess.Kill();
-                    ChildProcess.WaitForExit();
+                    ChildProcess.WaitForExit(3000);
                 }
 
                 ChildProcess.Dispose();
@@ -348,7 +350,10 @@ namespace FASTBuildTools
             // Get solution info and FastBuild executable path.
             VsSolution.GetSolutionInfo(out string solutionDirectory, out string solutionFilename, out _);
             var solutionBffPath = Path.Combine(solutionDirectory, $"{Path.GetFileNameWithoutExtension(solutionFilename)}.bff");
-            var fastBuildExecutable = Path.Combine(solutionDirectory, "FBuild.bat");
+
+            var fastBuildBatch = File.ReadAllText(Path.Combine(solutionDirectory, "FBuild.bat"));
+            var fastBuildExecutable = new Regex(@"""(.*?)""").Match(fastBuildBatch).Groups[1].ToString();
+            var fastBuildOptions = fastBuildBatch.Replace($"\"{fastBuildExecutable}\"", "").Replace("%*", "");
 
             // Spawn FastBuild process.
             void OutputHandler(object Sender, DataReceivedEventArgs Args)
@@ -363,7 +368,7 @@ namespace FASTBuildTools
 
             ChildProcess = new System.Diagnostics.Process();
             ChildProcess.StartInfo.FileName = fastBuildExecutable;
-            ChildProcess.StartInfo.Arguments = $"{cleanBuildOption} {string.Join(" ", fastBuildTargets)} -ide -noprogress -config \"{solutionBffPath}\"";
+            ChildProcess.StartInfo.Arguments = $"{fastBuildOptions} {cleanBuildOption} {string.Join(" ", fastBuildTargets)} -wrapper -noprogress -config \"{solutionBffPath}\"";
             ChildProcess.StartInfo.WorkingDirectory = solutionDirectory;
             ChildProcess.StartInfo.UseShellExecute = false;
             ChildProcess.StartInfo.RedirectStandardOutput = true;
