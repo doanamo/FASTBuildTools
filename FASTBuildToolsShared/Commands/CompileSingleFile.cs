@@ -35,12 +35,17 @@ namespace FASTBuildTools
 
         public void KillChildProcess()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (ChildProcess != null)
             {
                 if (!ChildProcess.HasExited)
                 {
                     ChildProcess.CancelOutputRead();
                     ChildProcess.CancelErrorRead();
+
+                    BuildOutputPane?.OutputString($"Build has been canceled. It may take few additional seconds for FBuild process to exit." + Environment.NewLine);
+
                     ChildProcess.Kill();
                     ChildProcess.WaitForExit(3000);
                 }
@@ -52,6 +57,8 @@ namespace FASTBuildTools
 
         public void Dispose()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             KillChildProcess();
         }
 
@@ -72,6 +79,8 @@ namespace FASTBuildTools
         private DTE2 DTE;
         private IVsSolution2 VsSolution;
         private IVsOutputWindow VsOutputWindow;
+        private OutputWindow OutputWindow;
+        private OutputWindowPane BuildOutputPane;
         private BuildEvents BuildEvents;
         private CommandEvents CommandEvents;
 
@@ -85,6 +94,9 @@ namespace FASTBuildTools
             Instance.DTE = Package.GetGlobalService(typeof(DTE)) as DTE2;
             Instance.VsSolution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution2;
             Instance.VsOutputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+
+            const string vsWindowKindOutput = "{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}";
+            Instance.OutputWindow = Instance.DTE.Windows.Item(vsWindowKindOutput).Object as OutputWindow;
 
             Instance.BuildEvents = Instance.DTE.Events.BuildEvents;
             Instance.DTE.Events.BuildEvents.OnBuildBegin += Instance.BuildEvents_OnBuildBegin;
@@ -124,43 +136,38 @@ namespace FASTBuildTools
             }
 
             // Get build output pane.
-            const string vsWindowKindOutput = "{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}";
-            var outputWindow = DTE.Windows.Item(vsWindowKindOutput);
-            var outputWindowDynamic = outputWindow.Object as OutputWindow;
-
-            OutputWindowPane buildOutputPane;
             try
             {
-                buildOutputPane = outputWindowDynamic.OutputWindowPanes.Item("FASTBuildTools: CompileSingleFile");
+                BuildOutputPane = OutputWindow.OutputWindowPanes.Item("FASTBuildTools: CompileSingleFile");
             }
             catch (Exception)
             {
-                buildOutputPane = outputWindowDynamic.OutputWindowPanes.Add("FASTBuildTools: CompileSingleFile");
+                BuildOutputPane = OutputWindow.OutputWindowPanes.Add("FASTBuildTools: CompileSingleFile");
             }
 
-            buildOutputPane.Clear();
-            buildOutputPane.Activate();
-            outputWindow.Activate();
+            BuildOutputPane.Clear();
+            BuildOutputPane.Activate();
+            OutputWindow.Parent.Activate();
 
             // Run single file compile.
             CancelDefault = true;
 
             try
             {
-                if (!HandleFastBuildProject(buildOutputPane))
+                if (!HandleFastBuildProject(BuildOutputPane))
                 {
                     CancelDefault = false;
                 }
             }
             catch (Exception ex)
             {
-                buildOutputPane.OutputString($"Exception: {ex.Message}" + Environment.NewLine);
+                BuildOutputPane.OutputString($"Exception: {ex.Message}" + Environment.NewLine);
                 CancelDefault = false;
             }
 
             if (!CancelDefault)
             {
-                buildOutputPane.OutputString("Falling back to regular Build.Compile command..." + Environment.NewLine);
+                BuildOutputPane.OutputString("Falling back to regular Build.Compile command..." + Environment.NewLine);
             }
         }
 
