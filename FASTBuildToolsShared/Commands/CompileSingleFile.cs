@@ -388,7 +388,7 @@ namespace FASTBuildTools
 
             ChildProcess = new System.Diagnostics.Process();
             ChildProcess.StartInfo.FileName = fastBuildExecutable;
-            ChildProcess.StartInfo.Arguments = $"CompileSingleFile -ide -noprogress -config \"{compileSingleFileBff}\"";
+            ChildProcess.StartInfo.Arguments = $"CompileSingleFile -ide -config \"{compileSingleFileBff}\"";
             ChildProcess.StartInfo.WorkingDirectory = projectDirectory;
             ChildProcess.StartInfo.UseShellExecute = false;
             ChildProcess.StartInfo.RedirectStandardOutput = true;

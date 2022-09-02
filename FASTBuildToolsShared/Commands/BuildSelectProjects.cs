@@ -368,7 +368,7 @@ namespace FASTBuildTools
 
             ChildProcess = new System.Diagnostics.Process();
             ChildProcess.StartInfo.FileName = fastBuildExecutable;
-            ChildProcess.StartInfo.Arguments = $"{fastBuildOptions} {cleanBuildOption} {string.Join(" ", fastBuildTargets)} -wrapper -noprogress -config \"{solutionBffPath}\"";
+            ChildProcess.StartInfo.Arguments = $"{fastBuildOptions} {cleanBuildOption} {string.Join(" ", fastBuildTargets)} -ide -monitor -config \"{solutionBffPath}\"";
             ChildProcess.StartInfo.WorkingDirectory = solutionDirectory;
             ChildProcess.StartInfo.UseShellExecute = false;
             ChildProcess.StartInfo.RedirectStandardOutput = true;
