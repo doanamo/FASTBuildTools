@@ -76,6 +76,13 @@ namespace FASTBuildTools
                 return;
             }
 
+            if (DTE.Debugger.CurrentMode != dbgDebugMode.dbgDesignMode)
+            {
+                // We are debugging. Same command is used for "Continue" after hitting a breakpoint.
+                CancelDefault = false;
+                return;
+            }
+
             Window window = DTE.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
             window.Activate();
 
