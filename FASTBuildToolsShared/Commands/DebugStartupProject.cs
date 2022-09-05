@@ -191,10 +191,10 @@ namespace FASTBuildTools
 
             if (DebugAfterBuildDone && ProjectBuilt)
             {
-                // Copy build output to new pane before starting Debug command, which will
-                // try to unsuccessfully build NMake project and in result erase build output.
                 try
                 {
+                    // Copy build output to new pane before starting Debug command, which will
+                    // try to unsuccessfully build NMake project and in result erase build output.
                     const string buildOutputPaneGuid = "{1BD8A850-02D1-11D1-BEE7-00A0C913D1F8}";
                     const string vsWindowKindOutput = "{34E76E81-EE4A-11D0-AE2E-00A0C90FFFC3}";
                     var outputWindow = DTE.Windows.Item(vsWindowKindOutput);
@@ -219,12 +219,15 @@ namespace FASTBuildTools
                     targetPane.Clear();
                     targetPane.OutputString(selection.Text);
                     targetPane.Activate();
+
+                    // Trigger solution build.
+                    // This is known to fail on some version of Visual Studio such as 17.3 (while 17.0 was working).
+                    // Raised ticket here: https://developercommunity.visualstudio.com/t/Calling-EnvDTESolutionBuildDebug-fro/10138436
+                    DTE.Solution.SolutionBuild.Debug();
                 }
                 catch (Exception)
                 {
                 }
-
-                DTE.Solution.SolutionBuild.Debug();
             }
 
             DebugAfterBuildDone = false;
